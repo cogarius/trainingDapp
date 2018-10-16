@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>web3 wallet privider injection test page</title>
+</head>
+
+<body>
+    <h1>Test web3 injection</h1>
+    <p>Tv2. check your console log</p>
+    <input id="ethAddressInput" type="text" placeholder="ethAddress" value="">
+    <input type="button" value="getBalance" onclick="displayBalance()">
+    <section>
+        Output:<div id="output"></div>
+    </section>
+
+    <script>
+        window.addEventListener('load', async () => {
+            // Modern dapp browsers...
+            if (window.ethereum) {
+                window.web3 = new Web3(ethereum);
+                try {
+                    // Request account access if needed
+                    console.log('Request account access if needed');
+                    await ethereum.enable();
+                    // Acccounts now exposed
+                    console.log('User enabled it : Acccounts now exposed');
+                    // console.log('web3.eth:', web3.eth);
+                    console.log('web3 version:', web3.version);
+
+                    console.log('Web3 Detected! ' + web3.currentProvider.constructor.name)
+                    //web3.eth.sendTransaction({/* ... */});
+                    displayAccount0();
+                } catch (error) {
+                    console.log('User denied account access...');
+                    console.log('error during web3 injection', error);
+
+                    // User denied account access...
+                }
+            }
+            // Legacy dapp browsers...
+            else if (window.web3) {
+                window.web3 = new Web3(web3.currentProvider);
+                console.log('web3.eth:', web3.eth);
+                console.log('Web3 Detected (Legacy dapp browsers)! ' + web3.currentProvider.constructor.name);
+                displayAccount0();
+
+                // Acccounts always exposed
+                // web3.eth.sendTransaction({/* ... */});
+            }
+            // Non-dapp browsers...
+            else {
+                console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+            }
+        });
+
+        function displayAccount0() {
+            if (web3) {
+                if (web3.eth.accounts) { // TODO; use web3.eth.getAccounts(callback(error, result){ ... }) async verison
+                    const el = document.getElementById("ethAddressInput");
+                    const addr = web3.eth.accounts.slice(0)[0];
+                    el.value = web3.eth.accounts.slice(0)[0];
+                }
+            }
+        }
+        function displayBalance() {
+            const address = document.getElementById("ethAddressInput").value;
+            getBalance(address, (err, bal) => {
+                if (err) {
+                    document.getElementById("output").innerHTML = err;
+                } else {
+                    document.getElementById("output").innerHTML = bal + " ETH";;
+                }
+            });
+        }
+
+        function getBalance(ethAddress, callback) {
+            if (!ethAddress) {
+                return callback(new Error('empty eth address in getBalance()'), 0);
+            }
+            try {
+                console.log('getting balance for ', ethAddress);
+                web3.eth.getBalance(ethAddress, function (error, wei) {
+                    if (!error) {
+                        var balance = web3.fromWei(wei, 'ether');
+                        return callback(null, balance);
+                    }
+                    console.log('getbal error:', error);
+                    return callback(error, 0);
+                });
+            } catch (err) {
+                console.log('getbal error:', error);
+                return callback(err, 0);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
